@@ -1,0 +1,45 @@
+---
+# Role: apache
+# Handles installation and configuration of the Apache HTTP Server (3.1).
+
+# 1. OS-Specific Naming
+- name: Set Apache Package/Service names based on OS Family
+  ansible.builtin.set_fact:
+    apache_package: "{{ 'apache2' if ansible_os_family == 'Debian' else 'httpd' }}"
+    apache_service: "{{ 'apache2' if ansible_os_family == 'Debian' else 'httpd' }}"
+
+# 2. Installation
+- name: Install Apache
+  ansible.builtin.package:
+    name: "{{ apache_package }}"
+    state: present
+
+# 3. Configuration Deployment (Triggers Restart Handler)
+- name: Ensure Apache configuration file is deployed and notifies restart handler
+  ansible.builtin.copy:
+    content: |
+      # Simple default site configuration
+      <VirtualHost *:{{ apache_port }}>
+          DocumentRoot /var/www/html
+          ErrorLog /var/log/{{ apache_service }}/error.log
+          CustomLog /var/log/{{ apache_service }}/access.log combined
+      </VirtualHost>
+    dest: "{{ '/etc/apache2/sites-available/000-default.conf' if ansible_os_family == 'Debian' else '/etc/httpd/conf.d/default.conf' }}"
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart Apache Service
+
+# 4. Service Management
+- name: Ensure Apache service is running and enabled
+  ansible.builtin.service:
+    name: "{{ apache_service }}"
+    state: started
+    enabled: yes
+
+# 5. Verification Content
+- name: Deploy simple index.html (Verification)
+  ansible.builtin.copy:
+    content: "<h1>Ansible Managed Webserver - {{ ansible_hostname }}</h1><p>Running Apache on port {{ apache_port }}</p>"
+    dest: "/var/www/html/index.html"
+    mode: '0644'
