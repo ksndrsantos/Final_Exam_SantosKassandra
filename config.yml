@@ -1,0 +1,3 @@
+ansible_manager_username: kassey
+elasticsearch_host: 10.1.1.200
+apache_port: 80

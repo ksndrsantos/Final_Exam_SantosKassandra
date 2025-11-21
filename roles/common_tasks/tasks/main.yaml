@@ -1,0 +1,8 @@
+---
+- name: 4.4 Change Motd as "Ansible Managed by <username>"
+  ansible.builtin.template:
+    src: motd.j2             # Looks for the motd.j2 file in the local root directory
+    dest: /etc/motd          # Writes the rendered output to the standard MOTD file on the remote server
+    owner: root
+    group: root
+    mode: '0644'
